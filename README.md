@@ -5,10 +5,9 @@
 ## 概要
 
 1. Google Driveの指定フォルダから直近のサロンレポートPDF（日次保存分）を取得
-2. 連続するPDF間の差分テキストを生成
-3. NotebookLMに差分データを投入し、経営状況の分析・改善提案を生成
+2. 複数PDFのテキストを結合
+3. NotebookLMに投入し、経営状況の分析・改善提案を生成
 4. 分析結果をLINE Worksのチャンネルに送信
-5. 上記を週1回（デフォルト7日）のペースで実行
 
 ## ディレクトリ構成
 
@@ -20,8 +19,7 @@ salon-report-bot/
 │   ├── drive_client.py     # Google Drive連携
 │   ├── lineworks_client.py # LINE Works Bot API連携
 │   ├── notebooklm_client.py# NotebookLM連携
-│   ├── pdf_parser.py       # PDFテキスト抽出・差分生成
-│   └── scheduler.py        # 実行間隔管理
+│   └── pdf_parser.py       # PDFテキスト抽出
 ├── credentials/            # 認証情報（Gitignore済み）
 │   ├── gdrive-service-account.json
 │   └── lineworks-private.key
@@ -72,7 +70,6 @@ cp .env.example .env
 
 | キー | デフォルト | 説明 |
 |------|-----------|------|
-| `scheduler.interval_days` | `7` | 実行間隔（日数） |
 | `drive.pdf_fetch_count` | `7` | Google Driveから取得するPDF件数 |
 | `notebooklm.notebook_title` | `"サロンレポート分析"` | NotebookLMノートブック名 |
 | `notebooklm.extra_reference_urls_file` | `"extra_reference_urls.txt"` | 追加参照URLファイルのパス |
@@ -105,14 +102,6 @@ uv run notebooklm login
 
 ```bash
 uv run python src/main.py
-```
-
-前回実行から `scheduler.interval_days` 日未満の場合はスキップされます（デフォルト: 7日）。
-
-間隔チェックをスキップして強制実行したい場合は `--force` オプションを使います。
-
-```bash
-uv run python src/main.py --force
 ```
 
 ## 外部サービスの準備
