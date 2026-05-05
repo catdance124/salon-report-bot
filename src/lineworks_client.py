@@ -97,11 +97,18 @@ def _build_carousel(data: dict, period_start: str, period_end: str) -> dict:
     for m in data.get("metrics", []):
         metric_rows.append({
             "type": "box",
-            "layout": "horizontal",
+            "layout": "vertical",
+            "spacing": "xs",
             "contents": [
-                {"type": "text", "text": m.get("label", ""), "size": "sm", "flex": 2},
-                {"type": "text", "text": m.get("value", ""), "size": "sm", "flex": 3, "weight": "bold"},
-                {"type": "text", "text": m.get("trend", ""), "size": "xs", "flex": 3, "color": "#6b7280", "align": "end"},
+                {"type": "text", "text": m.get("label", ""), "size": "xs", "color": "#6b7280"},
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                        {"type": "text", "text": m.get("value", ""), "size": "sm", "weight": "bold", "flex": 1},
+                        {"type": "text", "text": m.get("trend", ""), "size": "xs", "color": "#6b7280", "align": "end", "flex": 1, "wrap": True},
+                    ],
+                },
             ],
         })
     card_metrics = {
