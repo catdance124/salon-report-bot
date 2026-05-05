@@ -4,6 +4,7 @@ drive:
 notebooklm:
   notebook_title: "サロンレポート分析"
   keep_notebook: true
+  extra_reference_urls_file: "extra_reference_urls.txt"
   video:
     language: "ja"
     format: "EXPLAINER"

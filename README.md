@@ -27,6 +27,7 @@ salon-report-bot/
 │   └── lineworks-private.key
 ├── logs/                   # ログ出力先（Gitignore済み）
 ├── config.yml              # 非秘匿設定
+├── extra_reference_urls.txt# NotebookLMに追加する参照URL（Gitignore済み・任意）
 ├── .env                    # 秘匿情報（Gitignore済み）
 ├── .env.example            # 秘匿情報テンプレート
 ├── pyproject.toml
@@ -74,9 +75,25 @@ cp .env.example .env
 | `scheduler.interval_days` | `7` | 実行間隔（日数） |
 | `drive.pdf_fetch_count` | `7` | Google Driveから取得するPDF件数 |
 | `notebooklm.notebook_title` | `"サロンレポート分析"` | NotebookLMノートブック名 |
+| `notebooklm.extra_reference_urls_file` | `"extra_reference_urls.txt"` | 追加参照URLファイルのパス |
 | `notebooklm.analysis_query` | （省略） | NotebookLMへの分析クエリ |
 
-### 5. NotebookLMの認証
+### 5. 追加参照URLの設定（任意）
+
+NotebookLMのソースとして、サロンレポートPDF以外のURLを追加したい場合は `extra_reference_urls.txt` を作成します。このファイルはGitignore対象のため、サロン固有のURLをコミットせずに管理できます。
+
+```
+# extra_reference_urls.txt
+# 1行1URL。# から始まる行はコメント。
+https://beauty.hotpepper.jp/kr/example
+https://beauty.hotpepper.jp/kr/example/coupon/
+https://beauty.hotpepper.jp/kr/example/review/
+#https://beauty.hotpepper.jp/kr/example/map/
+```
+
+ファイルが存在しない場合は何も追加されません。ファイルのパスは `config.yml` の `notebooklm.extra_reference_urls_file` で変更できます。
+
+### 6. NotebookLMの認証
 
 初回はブラウザでGoogleアカウントにサインインが必要です。
 

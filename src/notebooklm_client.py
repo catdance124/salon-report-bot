@@ -9,7 +9,7 @@ from datetime import datetime
 from notebooklm import NotebookLMClient
 from notebooklm.rpc import VideoFormat, VideoStyle
 
-from config import ANALYSIS_QUERY, KEEP_NOTEBOOK, NOTEBOOK_TITLE, VIDEO_FORMAT, VIDEO_LANGUAGE, VIDEO_STYLE, VIDEO_TIMEOUT
+from config import ANALYSIS_QUERY, EXTRA_REFERENCE_URLS, KEEP_NOTEBOOK, NOTEBOOK_TITLE, VIDEO_FORMAT, VIDEO_LANGUAGE, VIDEO_STYLE, VIDEO_TIMEOUT
 
 log = logging.getLogger(__name__)
 
@@ -41,6 +41,16 @@ async def _run(
                 content=analysis_text,
                 wait=True,
             )
+
+            if EXTRA_REFERENCE_URLS:
+                log.info("参照URLを%d件追加します", len(EXTRA_REFERENCE_URLS))
+                url_sources = [
+                    await client.sources.add_url(notebook_id=notebook.id, url=url)
+                    for url in EXTRA_REFERENCE_URLS
+                ]
+                await client.sources.wait_for_sources(
+                    notebook.id, [s.id for s in url_sources]
+                )
 
             analysis_data: dict | None = None
             if need_analysis:

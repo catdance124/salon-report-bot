@@ -21,3 +21,6 @@ logs/*
 
 # notebooklm-py auth
 ~/.notebooklm/
+
+# Salon-specific reference URLs (not committed)
+extra_reference_urls.txt

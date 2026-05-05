@@ -14,3 +14,10 @@ VIDEO_LANGUAGE: str = _video["language"]
 VIDEO_FORMAT: str = _video["format"]
 VIDEO_STYLE: str = _video["style"]
 VIDEO_TIMEOUT: int = _video["timeout_seconds"]
+
+_extra_reference_urls_path = Path(__file__).parent.parent / _config["notebooklm"]["extra_reference_urls_file"]
+EXTRA_REFERENCE_URLS: list[str] = (
+    [line.strip() for line in _extra_reference_urls_path.read_text().splitlines() if line.strip() and not line.startswith("#")]
+    if _extra_reference_urls_path.exists()
+    else []
+)
