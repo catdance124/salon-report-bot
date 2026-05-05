@@ -9,7 +9,7 @@ notebooklm:
     language: "ja"
     format: "EXPLAINER"
     style: "KAWAII"
-    timeout_seconds: 1800
+    timeout_seconds: 3600
   analysis_query: |
     直近の経営状況を分析し、以下のJSON形式のみで回答してください。JSON以外のテキストは含めないでください。
 
