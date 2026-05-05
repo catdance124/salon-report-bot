@@ -12,3 +12,6 @@ dependencies = [
     "PyJWT",
     "requests",
 ]
+
+[tool.uv]
+package = false

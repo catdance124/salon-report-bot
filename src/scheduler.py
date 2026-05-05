@@ -2,7 +2,7 @@ import json
 from datetime import date
 from pathlib import Path
 
-STATE_FILE = Path(__file__).parent / "state.json"
+STATE_FILE = Path(__file__).parent.parent / "state.json"
 INTERVAL_DAYS = 5
 
 
