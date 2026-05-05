@@ -9,6 +9,8 @@
 3. NotebookLMに投入し、経営状況の分析・改善提案を生成
 4. 分析結果をLINE Worksのチャンネルに送信
 
+![Flex Messageプレビュー](https://github.com/user-attachments/assets/a811a90c-e958-4e12-a051-754eb37932e5)
+
 ## ディレクトリ構成
 
 ```
@@ -103,6 +105,16 @@ uv run notebooklm login
 ```bash
 uv run python src/main.py
 ```
+
+## Flexメッセージのプレビュー
+
+`src/preview_test_message.py` を実行するとテストデータでHTMLプレビューを生成できます。
+
+```bash
+uv run python src/preview_test_message.py
+```
+
+プロジェクトルートに `preview.html` が生成されるので、ブラウザで開いて確認してください。テストデータの内容は `src/preview_test_message.py` の `TEST_DATA` を編集して変更できます。
 
 ## 外部サービスの準備
 
