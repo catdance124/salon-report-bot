@@ -28,7 +28,7 @@ async def _analyze(analysis_text: str) -> dict:
         try:
             await client.sources.add_text(
                 notebook_id=notebook.id,
-                title="サロンレポート差分データ",
+                title="サロンレポートデータ",
                 content=analysis_text,
                 wait=True,
             )

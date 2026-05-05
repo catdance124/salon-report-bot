@@ -7,7 +7,7 @@ from config import INTERVAL_DAYS, PDF_FETCH_COUNT
 from drive_client import fetch_recent_pdfs
 from lineworks_client import send_flex_message
 from notebooklm_client import analyze_with_notebooklm
-from pdf_parser import compute_diffs, format_diffs_for_analysis
+from pdf_parser import combine_pdfs_to_text
 from scheduler import should_run, update_last_run
 
 _LOG_DIR = Path(__file__).parent.parent / "logs"
@@ -37,9 +37,8 @@ def run(force: bool = False) -> None:
         log.warning("PDFが2件未満のため処理をスキップします")
         return
 
-    log.info(f"{len(pdfs)}件のPDFを取得、差分を計算中...")
-    diffs = compute_diffs(pdfs)
-    analysis_text = format_diffs_for_analysis(diffs)
+    log.info(f"{len(pdfs)}件のPDFを取得、テキストを結合中...")
+    analysis_text = combine_pdfs_to_text(pdfs)
 
     log.info("NotebookLMで分析中...")
     analysis_data = analyze_with_notebooklm(analysis_text)
