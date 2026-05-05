@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 from pathlib import Path
@@ -5,6 +6,8 @@ from pathlib import Path
 import jwt
 import requests
 from dotenv import load_dotenv
+
+log = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -43,19 +46,116 @@ def _get_access_token() -> str:
     return resp.json()["access_token"]
 
 
-def send_message(text: str) -> None:
-    """LINE Works のチャンネル（グループまたはユーザー）にテキストメッセージを送信する。"""
+def _post_message(content: dict) -> None:
     token = _get_access_token()
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
-    payload = {
-        "content": {
-            "type": "text",
-            "text": text,
-        }
-    }
     url = f"{API_BASE}/bots/{BOT_ID}/channels/{CHANNEL_ID}/messages"
-    resp = requests.post(url, json=payload, headers=headers)
+    resp = requests.post(url, json={"content": content}, headers=headers)
+    if not resp.ok:
+        log.error("LINE Works APIエラー: status=%s body=%s", resp.status_code, resp.text)
     resp.raise_for_status()
+
+
+def _header_box(title: str, bg_color: str) -> dict:
+    return {
+        "type": "box",
+        "layout": "vertical",
+        "backgroundColor": bg_color,
+        "paddingAll": "md",
+        "contents": [
+            {"type": "text", "text": title, "weight": "bold", "color": "#ffffff", "size": "sm"}
+        ],
+    }
+
+
+def _bullet(text: str) -> dict:
+    return {"type": "text", "text": f"・{text}", "wrap": True, "size": "sm"}
+
+
+def _build_carousel(data: dict, period_start: str, period_end: str) -> dict:
+    # Card 1: 概要
+    card_summary = {
+        "type": "bubble",
+        "header": _header_box("📊 概要", "#3b82f6"),
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "sm",
+            "contents": [
+                {"type": "text", "text": f"{period_start} → {period_end}", "size": "xs", "color": "#888888"},
+                {"type": "separator"},
+                {"type": "text", "text": data.get("summary", ""), "wrap": True, "size": "sm"},
+            ],
+        },
+    }
+
+    # Card 2: 数値推移
+    metric_rows = []
+    for m in data.get("metrics", []):
+        metric_rows.append({
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+                {"type": "text", "text": m.get("label", ""), "size": "sm", "flex": 2},
+                {"type": "text", "text": m.get("value", ""), "size": "sm", "flex": 3, "weight": "bold"},
+                {"type": "text", "text": m.get("trend", ""), "size": "xs", "flex": 3, "color": "#6b7280", "align": "end"},
+            ],
+        })
+    card_metrics = {
+        "type": "bubble",
+        "header": _header_box("📈 数値推移", "#10b981"),
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "sm",
+            "contents": metric_rows or [{"type": "text", "text": "データなし", "size": "sm"}],
+        },
+    }
+
+    # Card 3: 評価（好調な点・改善点）
+    eval_contents = [{"type": "text", "text": "✅ 好調な点", "weight": "bold", "size": "sm"}]
+    eval_contents += [_bullet(h) for h in data.get("highlights", [])]
+    eval_contents.append({"type": "separator", "margin": "md"})
+    eval_contents.append({"type": "text", "text": "⚠️ 改善が必要な点", "weight": "bold", "size": "sm", "margin": "md"})
+    eval_contents += [_bullet(i) for i in data.get("improvements", [])]
+    card_eval = {
+        "type": "bubble",
+        "header": _header_box("🔍 評価", "#f59e0b"),
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "xs",
+            "contents": eval_contents,
+        },
+    }
+
+    # Card 4: 今週のアクション
+    action_contents = [_bullet(a) for a in data.get("actions", [])]
+    card_actions = {
+        "type": "bubble",
+        "header": _header_box("🚀 今週のアクション", "#ef4444"),
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "xs",
+            "contents": action_contents or [{"type": "text", "text": "データなし", "size": "sm"}],
+        },
+    }
+
+    return {
+        "type": "flex",
+        "altText": f"サロン経営レポート {period_start} → {period_end}",
+        "contents": {
+            "type": "carousel",
+            "contents": [card_summary, card_metrics, card_eval, card_actions],
+        },
+    }
+
+
+def send_flex_message(data: dict, period_start: str, period_end: str) -> None:
+    """LINE Works のチャンネルにFlexible Template（Carousel）で送信する。"""
+    content = _build_carousel(data, period_start, period_end)
+    _post_message(content)

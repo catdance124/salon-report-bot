@@ -1,18 +1,25 @@
 import argparse
 import logging
 import sys
+from pathlib import Path
 
 from config import INTERVAL_DAYS, PDF_FETCH_COUNT
 from drive_client import fetch_recent_pdfs
-from lineworks_client import send_message
+from lineworks_client import send_flex_message
 from notebooklm_client import analyze_with_notebooklm
 from pdf_parser import compute_diffs, format_diffs_for_analysis
 from scheduler import should_run, update_last_run
 
+_LOG_DIR = Path(__file__).parent.parent / "logs"
+_LOG_DIR.mkdir(exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler(_LOG_DIR / "salon-report-bot.log", encoding="utf-8"),
+    ],
 )
 log = logging.getLogger(__name__)
 
@@ -35,14 +42,13 @@ def run(force: bool = False) -> None:
     analysis_text = format_diffs_for_analysis(diffs)
 
     log.info("NotebookLMで分析中...")
-    summary = analyze_with_notebooklm(analysis_text)
+    analysis_data = analyze_with_notebooklm(analysis_text)
 
     period_start = pdfs[0][0]
     period_end = pdfs[-1][0]
-    message = f"【サロン経営レポート {period_start} → {period_end}】\n\n{summary}"
 
     log.info("LINE Worksに送信中...")
-    send_message(message)
+    send_flex_message(analysis_data, period_start, period_end)
 
     update_last_run()
     log.info("完了しました")
