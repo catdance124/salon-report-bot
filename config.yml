@@ -6,6 +6,11 @@ drive:
 
 notebooklm:
   notebook_title: "サロンレポート分析"
+  video:
+    language: "ja"
+    format: "EXPLAINER"
+    style: "KAWAII"
+    timeout_seconds: 600
   analysis_query: |
     直近の経営状況を分析し、以下のJSON形式のみで回答してください。JSON以外のテキストは含めないでください。
 

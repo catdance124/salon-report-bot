@@ -162,7 +162,45 @@ def _build_carousel(data: dict, period_start: str, period_end: str) -> dict:
     }
 
 
+def _upload_file(file_path: str) -> str:
+    """ファイルをLINE Worksにアップロードし、fileIdを返す。"""
+    token = _get_access_token()
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    file_name = Path(file_path).name
+
+    resp = requests.post(
+        f"{API_BASE}/bots/{BOT_ID}/attachments",
+        json={"fileName": file_name},
+        headers=headers,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    upload_url: str = data["uploadUrl"]
+    file_id: str = data["fileId"]
+
+    upload_headers = {"Authorization": f"Bearer {token}"}
+    with open(file_path, "rb") as f:
+        upload_resp = requests.post(
+            upload_url,
+            headers=upload_headers,
+            files={
+                "FileData": (file_name, f, "video/mp4"),
+                "resourceName": (None, file_name),
+            },
+        )
+    if not upload_resp.ok:
+        log.error("ファイルアップロードエラー: status=%s body=%s", upload_resp.status_code, upload_resp.text)
+    upload_resp.raise_for_status()
+    return file_id
+
+
 def send_flex_message(data: dict, period_start: str, period_end: str) -> None:
     """LINE Works のチャンネルにFlexible Template（Carousel）で送信する。"""
     content = _build_carousel(data, period_start, period_end)
     _post_message(content)
+
+
+def send_video_message(video_path: str) -> None:
+    """動画ファイルをLINE Worksにアップロードして送信する。"""
+    file_id = _upload_file(video_path)
+    _post_message({"type": "file", "fileId": file_id})

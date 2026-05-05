@@ -5,8 +5,12 @@ from pathlib import Path
 
 from config import INTERVAL_DAYS, PDF_FETCH_COUNT
 from drive_client import fetch_recent_pdfs
-from lineworks_client import send_flex_message
-from notebooklm_client import analyze_with_notebooklm
+from lineworks_client import send_flex_message, send_video_message
+from notebooklm_client import (
+    analyze_and_generate_video_with_notebooklm,
+    analyze_with_notebooklm,
+    generate_video_with_notebooklm,
+)
 from pdf_parser import combine_pdfs_to_text
 from scheduler import should_run, update_last_run
 
@@ -24,12 +28,12 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-def run(force: bool = False) -> None:
+def run(force: bool = False, mode: str = "flex") -> None:
     if not force and not should_run():
         log.info(f"前回実行から{INTERVAL_DAYS}日未満のためスキップします")
         return
 
-    log.info("サロンレポートBot 実行開始")
+    log.info("サロンレポートBot 実行開始（mode=%s）", mode)
 
     log.info("Google DriveからPDFを取得中...")
     pdfs = fetch_recent_pdfs(n=PDF_FETCH_COUNT)
@@ -40,14 +44,31 @@ def run(force: bool = False) -> None:
     log.info(f"{len(pdfs)}件のPDFを取得、テキストを結合中...")
     analysis_text = combine_pdfs_to_text(pdfs)
 
-    log.info("NotebookLMで分析中...")
-    analysis_data = analyze_with_notebooklm(analysis_text)
-
     period_start = pdfs[0][0]
     period_end = pdfs[-1][0]
 
-    log.info("LINE Worksに送信中...")
-    send_flex_message(analysis_data, period_start, period_end)
+    analysis_data: dict | None = None
+    video_path: str | None = None
+
+    if mode == "flex":
+        log.info("NotebookLMで分析中...")
+        analysis_data = analyze_with_notebooklm(analysis_text)
+    elif mode == "video":
+        log.info("NotebookLMで動画生成中...")
+        video_path = generate_video_with_notebooklm(analysis_text)
+    else:  # both
+        log.info("NotebookLMで分析・動画生成中...")
+        analysis_data, video_path = analyze_and_generate_video_with_notebooklm(analysis_text)
+
+    if analysis_data is not None:
+        log.info("LINE WorksにFlexメッセージを送信中...")
+        send_flex_message(analysis_data, period_start, period_end)
+
+    if video_path is not None:
+        log.info("LINE Worksに動画を送信中...")
+        send_video_message(video_path)
+    elif mode in ("video", "both"):
+        log.warning("動画生成に失敗したためスキップします")
 
     update_last_run()
     log.info("完了しました")
@@ -60,5 +81,11 @@ if __name__ == "__main__":
         action="store_true",
         help="実行間隔チェックをスキップして強制実行する",
     )
+    parser.add_argument(
+        "--mode",
+        choices=["flex", "video", "both"],
+        default="flex",
+        help="送信モード: flex（分析レポートのみ）/ video（動画のみ）/ both（両方）",
+    )
     args = parser.parse_args()
-    run(force=args.force)
+    run(force=args.force, mode=args.mode)
