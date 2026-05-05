@@ -1,6 +1,8 @@
+import argparse
 import logging
 import sys
 
+from config import INTERVAL_DAYS, PDF_FETCH_COUNT
 from drive_client import fetch_recent_pdfs
 from lineworks_client import send_message
 from notebooklm_client import analyze_with_notebooklm
@@ -14,12 +16,10 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-PDF_FETCH_COUNT = 7  # 差分6日分を得るために7件取得
 
-
-def run() -> None:
-    if not should_run():
-        log.info("前回実行から5日未満のためスキップします")
+def run(force: bool = False) -> None:
+    if not force and not should_run():
+        log.info(f"前回実行から{INTERVAL_DAYS}日未満のためスキップします")
         return
 
     log.info("サロンレポートBot 実行開始")
@@ -49,4 +49,11 @@ def run() -> None:
 
 
 if __name__ == "__main__":
-    run()
+    parser = argparse.ArgumentParser(description="サロンレポートBot")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="実行間隔チェックをスキップして強制実行する",
+    )
+    args = parser.parse_args()
+    run(force=args.force)

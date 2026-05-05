@@ -2,8 +2,9 @@ import json
 from datetime import date
 from pathlib import Path
 
+from config import INTERVAL_DAYS
+
 STATE_FILE = Path(__file__).parent.parent / "state.json"
-INTERVAL_DAYS = 5
 
 
 def should_run() -> bool:

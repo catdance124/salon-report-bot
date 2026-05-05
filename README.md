@@ -8,7 +8,7 @@
 2. 連続するPDF間の差分テキストを生成
 3. NotebookLMに差分データを投入し、経営状況の分析・改善提案を生成
 4. 分析結果をLINE Worksのチャンネルに送信
-5. 上記を5日に1回のペースで実行
+5. 上記を週1回（デフォルト7日）のペースで実行
 
 ## ディレクトリ構成
 
@@ -16,6 +16,7 @@
 salon-report-bot/
 ├── src/                    # ソースコード
 │   ├── main.py             # エントリーポイント
+│   ├── config.py           # 設定ローダー
 │   ├── drive_client.py     # Google Drive連携
 │   ├── lineworks_client.py # LINE Works Bot API連携
 │   ├── notebooklm_client.py# NotebookLM連携
@@ -25,8 +26,9 @@ salon-report-bot/
 │   ├── gdrive-service-account.json
 │   └── lineworks-private.key
 ├── logs/                   # ログ出力先（Gitignore済み）
-├── .env                    # 環境変数（Gitignore済み）
-├── .env.example            # 環境変数テンプレート
+├── config.yml              # 非秘匿設定
+├── .env                    # 秘匿情報（Gitignore済み）
+├── .env.example            # 秘匿情報テンプレート
 ├── pyproject.toml
 └── uv.lock
 ```
@@ -44,7 +46,7 @@ uv sync
 - `credentials/gdrive-service-account.json` — Google DriveアクセスのサービスアカウントキーJSON
 - `credentials/lineworks-private.key` — LINE Works Bot APIのRSA秘密鍵
 
-### 3. 環境変数の設定
+### 3. 秘匿情報の設定
 
 `.env.example` をコピーして `.env` を作成し、各値を設定します。
 
@@ -63,7 +65,18 @@ cp .env.example .env
 | `LINEWORKS_BOT_ID` | LINE Works BotのID |
 | `LINEWORKS_CHANNEL_ID` | 送信先チャンネル（またはユーザー）のID |
 
-### 4. NotebookLMの認証
+### 4. 動作設定の変更（任意）
+
+`config.yml` で各種設定を変更できます。
+
+| キー | デフォルト | 説明 |
+|------|-----------|------|
+| `scheduler.interval_days` | `7` | 実行間隔（日数） |
+| `drive.pdf_fetch_count` | `7` | Google Driveから取得するPDF件数 |
+| `notebooklm.notebook_title` | `"サロンレポート分析"` | NotebookLMノートブック名 |
+| `notebooklm.analysis_query` | （省略） | NotebookLMへの分析クエリ |
+
+### 5. NotebookLMの認証
 
 初回はブラウザでGoogleアカウントにサインインが必要です。
 
@@ -77,7 +90,13 @@ uv run notebooklm login
 uv run python src/main.py
 ```
 
-前回実行から5日未満の場合はスキップされます。強制実行したい場合は `state.json` を削除してください。
+前回実行から `scheduler.interval_days` 日未満の場合はスキップされます（デフォルト: 7日）。
+
+間隔チェックをスキップして強制実行したい場合は `--force` オプションを使います。
+
+```bash
+uv run python src/main.py --force
+```
 
 ## 外部サービスの準備
 

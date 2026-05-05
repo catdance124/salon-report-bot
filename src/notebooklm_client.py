@@ -2,12 +2,7 @@ import asyncio
 
 from notebooklm import NotebookLMClient
 
-NOTEBOOK_TITLE = "サロンレポート分析"
-ANALYSIS_QUERY = (
-    "直近の経営状況を分析してください。"
-    "売上・予約数・客単価の推移、好調な点と改善が必要な点を具体的にまとめてください。"
-    "経営者が翌日から行動できるような実践的な改善提案も含めてください。"
-)
+from config import ANALYSIS_QUERY, NOTEBOOK_TITLE
 
 
 async def _analyze(analysis_text: str) -> str:

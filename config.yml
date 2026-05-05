@@ -1,0 +1,12 @@
+scheduler:
+  interval_days: 7
+
+drive:
+  pdf_fetch_count: 7
+
+notebooklm:
+  notebook_title: "サロンレポート分析"
+  analysis_query: |
+    直近の経営状況を分析してください。
+    売上・予約数・客単価の推移、好調な点と改善が必要な点を具体的にまとめてください。
+    経営者が翌日から行動できるような実践的な改善提案も含めてください。
