@@ -4,11 +4,12 @@ import logging
 import os
 import re
 import tempfile
+from datetime import datetime
 
 from notebooklm import NotebookLMClient
 from notebooklm.rpc import VideoFormat, VideoStyle
 
-from config import ANALYSIS_QUERY, NOTEBOOK_TITLE, VIDEO_FORMAT, VIDEO_LANGUAGE, VIDEO_STYLE, VIDEO_TIMEOUT
+from config import ANALYSIS_QUERY, KEEP_NOTEBOOK, NOTEBOOK_TITLE, VIDEO_FORMAT, VIDEO_LANGUAGE, VIDEO_STYLE, VIDEO_TIMEOUT
 
 log = logging.getLogger(__name__)
 
@@ -31,7 +32,8 @@ async def _run(
     need_video: bool,
 ) -> tuple[dict | None, str | None]:
     async with await NotebookLMClient.from_storage() as client:
-        notebook = await client.notebooks.create(title=NOTEBOOK_TITLE)
+        title = f"{NOTEBOOK_TITLE} {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        notebook = await client.notebooks.create(title=title)
         try:
             await client.sources.add_text(
                 notebook_id=notebook.id,
@@ -51,7 +53,7 @@ async def _run(
 
             video_path: str | None = None
             if need_video:
-                log.info("動画生成を開始します（最大%d秒）", _VIDEO_TIMEOUT)
+                log.info("動画生成を開始します（最大%d秒）", VIDEO_TIMEOUT)
                 status = await client.artifacts.generate_video(
                     notebook.id,
                     language=VIDEO_LANGUAGE,
@@ -78,7 +80,8 @@ async def _run(
 
             return analysis_data, video_path
         finally:
-            await client.notebooks.delete(notebook.id)
+            if not KEEP_NOTEBOOK:
+                await client.notebooks.delete(notebook.id)
 
 
 def analyze_with_notebooklm(analysis_text: str) -> dict:

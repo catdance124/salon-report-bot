@@ -3,7 +3,7 @@ import logging
 import sys
 from pathlib import Path
 
-from config import INTERVAL_DAYS, PDF_FETCH_COUNT
+from config import PDF_FETCH_COUNT
 from drive_client import fetch_recent_pdfs
 from lineworks_client import send_flex_message, send_video_message
 from notebooklm_client import (
@@ -12,7 +12,6 @@ from notebooklm_client import (
     generate_video_with_notebooklm,
 )
 from pdf_parser import combine_pdfs_to_text
-from scheduler import should_run, update_last_run
 
 _LOG_DIR = Path(__file__).parent.parent / "logs"
 _LOG_DIR.mkdir(exist_ok=True)
@@ -28,11 +27,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-def run(force: bool = False, mode: str = "flex") -> None:
-    if not force and not should_run():
-        log.info(f"前回実行から{INTERVAL_DAYS}日未満のためスキップします")
-        return
-
+def run(mode: str = "flex") -> None:
     log.info("サロンレポートBot 実行開始（mode=%s）", mode)
 
     log.info("Google DriveからPDFを取得中...")
@@ -70,17 +65,11 @@ def run(force: bool = False, mode: str = "flex") -> None:
     elif mode in ("video", "both"):
         log.warning("動画生成に失敗したためスキップします")
 
-    update_last_run()
     log.info("完了しました")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="サロンレポートBot")
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="実行間隔チェックをスキップして強制実行する",
-    )
     parser.add_argument(
         "--mode",
         choices=["flex", "video", "both"],
@@ -88,4 +77,4 @@ if __name__ == "__main__":
         help="送信モード: flex（分析レポートのみ）/ video（動画のみ）/ both（両方）",
     )
     args = parser.parse_args()
-    run(force=args.force, mode=args.mode)
+    run(mode=args.mode)

@@ -1,16 +1,14 @@
-scheduler:
-  interval_days: 7
-
 drive:
   pdf_fetch_count: 7
 
 notebooklm:
   notebook_title: "サロンレポート分析"
+  keep_notebook: true
   video:
     language: "ja"
     format: "EXPLAINER"
     style: "KAWAII"
-    timeout_seconds: 600
+    timeout_seconds: 1800
   analysis_query: |
     直近の経営状況を分析し、以下のJSON形式のみで回答してください。JSON以外のテキストは含めないでください。
 
