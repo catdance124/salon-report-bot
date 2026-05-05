@@ -1,6 +1,6 @@
-import os
+import asyncio
 
-from notebooklm import NotebookLM
+from notebooklm import NotebookLMClient
 
 NOTEBOOK_TITLE = "サロンレポート分析"
 ANALYSIS_QUERY = (
@@ -10,21 +10,24 @@ ANALYSIS_QUERY = (
 )
 
 
+async def _analyze(analysis_text: str) -> str:
+    async with await NotebookLMClient.from_storage() as client:
+        notebook = await client.notebooks.create(title=NOTEBOOK_TITLE)
+        try:
+            await client.sources.add_text(
+                notebook_id=notebook.id,
+                title="サロンレポート差分データ",
+                content=analysis_text,
+                wait=True,
+            )
+            result = await client.chat.ask(
+                notebook_id=notebook.id,
+                question=ANALYSIS_QUERY,
+            )
+            return result.answer
+        finally:
+            await client.notebooks.delete(notebook.id)
+
+
 def analyze_with_notebooklm(analysis_text: str) -> str:
-    """差分テキストをNotebookLMに送り経営サマリーを取得する。
-
-    Args:
-        analysis_text: format_diffs_for_analysis() で生成した文字列
-
-    Returns:
-        NotebookLMが生成した分析テキスト
-    """
-    client = NotebookLM()
-
-    notebook = client.create_notebook(title=NOTEBOOK_TITLE)
-    try:
-        notebook.add_source(text=analysis_text, title="サロンレポート差分データ")
-        response = notebook.chat(ANALYSIS_QUERY)
-        return response.text
-    finally:
-        notebook.delete()
+    return asyncio.run(_analyze(analysis_text))
