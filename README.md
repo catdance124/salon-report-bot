@@ -94,10 +94,65 @@ https://beauty.hotpepper.jp/kr/example/review/
 
 ### 6. NotebookLMの認証
 
-初回はブラウザでGoogleアカウントにサインインが必要です。
+NotebookLMはブラウザ経由でGoogleアカウントにサインインして認証します。認証情報は `~/.notebooklm/storage_state.json` に保存されます。
+
+> **注意:** playwrightは初回ログイン時のみ必要です。`storage_state.json` が存在すれば、以降の実行ではplaywrightは不要です。
+
+#### GUIを備えるサーバで直接実行する場合
 
 ```bash
-uv run notebooklm login
+# 初回ログイン時のみ（--with で一時的に playwright を追加）
+uv run --with "notebooklm-py[browser]" playwright install chromium
+uv run --with "notebooklm-py[browser]" notebooklm login
+```
+
+#### CLIのみのサーバでnoVNCを使う場合
+
+GUIがないサーバでは、noVNCを使ってローカルブラウザ越しに操作します。
+
+前提: `xvfb`, `x11vnc`, `novnc`, `websockify` がインストール済みであること。
+
+```bash
+# [サーバ] インストールされていない場合
+sudo apt-get install -y xvfb x11vnc novnc websockify
+```
+
+**[サーバ] 1. Chromiumをインストール**
+
+```bash
+uv run --with "notebooklm-py[browser]" playwright install chromium
+```
+
+**[サーバ] 2. noVNCを起動**
+
+```bash
+Xvfb :99 -screen 0 1280x720x24 &
+x11vnc -display :99 -nopw -listen localhost -forever -bg -o /tmp/x11vnc.log
+websockify --web /usr/share/novnc/ 6080 localhost:5900 &
+```
+
+**[ローカル] 3. 別ターミナルでSSHポートフォワーディング**
+
+```bash
+ssh -L 6080:localhost:6080 user@<サーバーIP>
+```
+
+**[ローカル] 4. ブラウザで `http://localhost:6080/vnc.html` を開き「Connect」をクリック**
+
+**[サーバ] 5. ログインコマンドを実行**
+
+```bash
+DISPLAY=:99 uv run --with "notebooklm-py[browser]" notebooklm login
+```
+
+**[ローカル] 6. noVNC画面でGoogleアカウントにログイン**
+
+noVNC画面にChromiumが起動するので、Googleアカウントでログイン → NotebookLMのホームが表示されたらサーバのターミナルでENTERを押す。
+
+**[サーバ] 7. 完了後にnoVNC関連プロセスを停止**
+
+```bash
+pkill -f "Xvfb :99"; pkill -f "x11vnc"; pkill -f "websockify.*6080"
 ```
 
 ## 実行
