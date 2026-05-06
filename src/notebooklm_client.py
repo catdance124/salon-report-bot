@@ -73,20 +73,30 @@ async def _run(
                 if status.is_failed:
                     log.warning("動画生成の開始に失敗しました: %s", status.error)
                 else:
-                    final = await client.artifacts.wait_for_completion(
-                        notebook.id,
-                        status.task_id,
-                        timeout=VIDEO_TIMEOUT,
-                    )
-                    if final.is_complete:
+                    # notebooklm-py 0.3.4 の _is_media_ready にバグがあり、VIDEO タイプの
+                    # 完了判定で art[8][i][0] をURL文字列として検査しているが、実際の構造では
+                    # art[8][i][0] はリストであり URL は art[8][i][0][0] にある。
+                    # そのため wait_for_completion が完了を永遠に検知できない。
+                    # 回避策として download_video を直接ループし、成功するまでリトライする。
+                    # download_video は _is_media_ready を経由せず status=COMPLETED のみで判定するため正常動作する。
+                    start = asyncio.get_event_loop().time()
+                    while True:
                         fd, tmp_path = tempfile.mkstemp(suffix=".mp4")
                         os.close(fd)
-                        video_path = await client.artifacts.download_video(
-                            notebook.id, tmp_path
-                        )
-                        log.info("動画をダウンロードしました: %s", video_path)
-                    else:
-                        log.warning("動画生成が完了しませんでした: %s", final.status)
+                        try:
+                            video_path = await client.artifacts.download_video(
+                                notebook.id, tmp_path
+                            )
+                            log.info("動画をダウンロードしました: %s", video_path)
+                            break
+                        except Exception as e:
+                            os.unlink(tmp_path)
+                            elapsed = asyncio.get_event_loop().time() - start
+                            if elapsed > VIDEO_TIMEOUT:
+                                log.warning("動画生成がタイムアウトしました（%d秒）", VIDEO_TIMEOUT)
+                                break
+                            log.debug("動画未完成、リトライします（経過%.0f秒）: %s", elapsed, e)
+                            await asyncio.sleep(10)
 
             return analysis_data, video_path
         finally:
