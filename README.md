@@ -158,8 +158,12 @@ pkill -f "Xvfb :99"; pkill -f "x11vnc"; pkill -f "websockify.*6080"
 ## 実行
 
 ```bash
-uv run python src/main.py
+uv run python src/main.py [オプション]
 ```
+
+| オプション | 値 | デフォルト | 説明 |
+|-----------|-----|-----------|------|
+| `--mode` | `flex` / `video` / `both` | `flex` | 送信モード。`flex`=分析レポートのみ、`video`=動画のみ、`both`=両方 |
 
 ## Flexメッセージのプレビュー
 
