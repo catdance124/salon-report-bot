@@ -75,7 +75,7 @@ cp .env.example .env
 | `drive.pdf_fetch_count` | `7` | Google Driveから取得するPDF件数 |
 | `notebooklm.notebook_title` | `"サロンレポート分析"` | NotebookLMノートブック名 |
 | `notebooklm.extra_reference_urls_file` | `"extra_reference_urls.txt"` | 追加参照URLファイルのパス |
-| `notebooklm.analysis_query` | （省略） | NotebookLMへの分析クエリ |
+| `notebooklm.flex_message.query` | （省略） | Flexメッセージ用の分析クエリ |
 
 ### 5. 追加参照URLの設定（任意）
 
@@ -163,7 +163,7 @@ uv run python src/main.py [オプション]
 
 | オプション | 値 | デフォルト | 説明 |
 |-----------|-----|-----------|------|
-| `--mode` | `flex` / `video` / `both` | `flex` | 送信モード。`flex`=分析レポートのみ、`video`=動画のみ、`both`=両方 |
+| `--mode` | `flex_message` / `video` / `both` | `flex_message` | 送信モード。`flex_message`=分析レポートのみ、`video`=動画のみ、`both`=両方 |
 
 ## Flexメッセージのプレビュー
 

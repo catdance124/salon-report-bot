@@ -9,7 +9,7 @@ from datetime import datetime
 from notebooklm import NotebookLMClient
 from notebooklm.rpc import VideoFormat, VideoStyle
 
-from config import ANALYSIS_QUERY, EXTRA_REFERENCE_URLS, KEEP_NOTEBOOK, NOTEBOOK_TITLE, VIDEO_FORMAT, VIDEO_LANGUAGE, VIDEO_STYLE, VIDEO_TIMEOUT
+from config import ANALYSIS_QUERY, EXTRA_REFERENCE_URLS, KEEP_NOTEBOOK, NOTEBOOK_TITLE, VIDEO_FORMAT, VIDEO_INSTRUCTIONS, VIDEO_LANGUAGE, VIDEO_STYLE, VIDEO_TIMEOUT
 
 log = logging.getLogger(__name__)
 
@@ -67,6 +67,7 @@ async def _run(
                 status = await client.artifacts.generate_video(
                     notebook.id,
                     language=VIDEO_LANGUAGE,
+                    instructions=VIDEO_INSTRUCTIONS,
                     video_format=VideoFormat[VIDEO_FORMAT],
                     video_style=VideoStyle[VIDEO_STYLE],
                 )

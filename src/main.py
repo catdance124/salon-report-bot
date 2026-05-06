@@ -27,7 +27,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-def run(mode: str = "flex") -> None:
+def run(mode: str = "flex_message") -> None:
     log.info("サロンレポートBot 実行開始（mode=%s）", mode)
 
     log.info("Google DriveからPDFを取得中...")
@@ -45,7 +45,7 @@ def run(mode: str = "flex") -> None:
     analysis_data: dict | None = None
     video_path: str | None = None
 
-    if mode == "flex":
+    if mode == "flex_message":
         log.info("NotebookLMで分析中...")
         analysis_data = analyze_with_notebooklm(analysis_text)
     elif mode == "video":
@@ -72,9 +72,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="サロンレポートBot")
     parser.add_argument(
         "--mode",
-        choices=["flex", "video", "both"],
-        default="flex",
-        help="送信モード: flex（分析レポートのみ）/ video（動画のみ）/ both（両方）",
+        choices=["flex_message", "video", "both"],
+        default="flex_message",
+        help="送信モード: flex_message（分析レポートのみ）/ video（動画のみ）/ both（両方）",
     )
     args = parser.parse_args()
     run(mode=args.mode)

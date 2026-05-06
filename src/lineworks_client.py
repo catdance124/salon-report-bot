@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from datetime import date
 from pathlib import Path
 
 import jwt
@@ -166,7 +167,7 @@ def _upload_file(file_path: str) -> str:
     """ファイルをLINE Worksにアップロードし、fileIdを返す。"""
     token = _get_access_token()
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    file_name = Path(file_path).name
+    file_name = f"{date.today()}.mp4"
 
     resp = requests.post(
         f"{API_BASE}/bots/{BOT_ID}/attachments",
