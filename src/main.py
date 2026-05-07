@@ -39,9 +39,6 @@ def run(mode: str = "flex_message") -> None:
     log.info(f"{len(pdfs)}件のPDFを取得、テキストを結合中...")
     analysis_text = combine_pdfs_to_text(pdfs)
 
-    period_start = pdfs[0][0]
-    period_end = pdfs[-1][0]
-
     analysis_data: dict | None = None
     video_path: str | None = None
 
@@ -57,7 +54,7 @@ def run(mode: str = "flex_message") -> None:
 
     if analysis_data is not None:
         log.info("LINE WorksにFlexメッセージを送信中...")
-        send_flex_message(analysis_data, period_start, period_end)
+        send_flex_message(analysis_data)
 
     if video_path is not None:
         log.info("LINE Worksに動画を送信中...")

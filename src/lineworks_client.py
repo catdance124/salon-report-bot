@@ -76,7 +76,8 @@ def _bullet(text: str) -> dict:
     return {"type": "text", "text": f"・{text}", "wrap": True, "size": "sm"}
 
 
-def _build_carousel(data: dict, period_start: str, period_end: str) -> dict:
+def _build_carousel(data: dict) -> dict:
+    period = data.get("period", "")
     # Card 1: 概要
     card_summary = {
         "type": "bubble",
@@ -86,7 +87,7 @@ def _build_carousel(data: dict, period_start: str, period_end: str) -> dict:
             "layout": "vertical",
             "spacing": "sm",
             "contents": [
-                {"type": "text", "text": f"{period_start} → {period_end}", "size": "xs", "color": "#888888"},
+                {"type": "text", "text": period, "size": "xs", "color": "#888888"},
                 {"type": "separator"},
                 {"type": "text", "text": data.get("summary", ""), "wrap": True, "size": "sm"},
             ],
@@ -155,7 +156,7 @@ def _build_carousel(data: dict, period_start: str, period_end: str) -> dict:
 
     return {
         "type": "flex",
-        "altText": f"サロン経営レポート {period_start} → {period_end}",
+        "altText": f"サロン経営レポート {period}",
         "contents": {
             "type": "carousel",
             "contents": [card_summary, card_metrics, card_eval, card_actions],
@@ -195,9 +196,9 @@ def _upload_file(file_path: str) -> str:
     return file_id
 
 
-def send_flex_message(data: dict, period_start: str, period_end: str) -> None:
+def send_flex_message(data: dict) -> None:
     """LINE Works のチャンネルにFlexible Template（Carousel）で送信する。"""
-    content = _build_carousel(data, period_start, period_end)
+    content = _build_carousel(data)
     _post_message(content)
 
 
