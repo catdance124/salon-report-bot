@@ -33,7 +33,7 @@ def fetch_recent_pdfs(n: int = 7) -> list[tuple[str, bytes]]:
         service.files()
         .list(
             q=query,
-            orderBy="name",
+            orderBy="name desc",
             fields="files(id, name)",
             pageSize=n,
         )
@@ -43,8 +43,7 @@ def fetch_recent_pdfs(n: int = 7) -> list[tuple[str, bytes]]:
     if not files:
         return []
 
-    # 直近n件（名前順末尾）
-    recent = files[-n:]
+    recent = list(reversed(files))
     pdfs: list[tuple[str, bytes]] = []
     for f in recent:
         buf = io.BytesIO()
